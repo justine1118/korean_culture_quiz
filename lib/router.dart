@@ -52,7 +52,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: R.achievements,    name: 'achievements',    builder: (_, __) => const AchievementScreen()),
     GoRoute(path: R.learningStatus,  name: 'learningStatus',  builder: (_, __) => const LearningStatusScreen()),
     GoRoute(path: R.settings,        name: 'settings',        builder: (_, __) => const SettingScreen()),
-    GoRoute(path: R.difficulty,      name: 'difficulty',      builder: (_, __) => const DifficultyAndStudySelectScreen()),
+    GoRoute(path: R.difficulty,      name: 'difficulty',      builder: (_, __) => const DifficultyAndStudySelectScreen( )),
 
     GoRoute(path: R.characterSelect, name: 'characterSelect', builder: (_, __) => const CharacterSelectScreen()),
     GoRoute(path: R.characterView,   name: 'characterView',   builder: (_, __) => const CharacterViewScreen()),
