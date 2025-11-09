@@ -38,7 +38,8 @@ class R {
 
 /// 전역 라우터
 final GoRouter appRouter = GoRouter(
-  initialLocation: R.start,
+  //시작 화면 변경시 아래의 R. 변경하기
+  initialLocation: R.quiz,
   routes: [
     GoRoute(path: R.start,       name: 'start',        builder: (_, __) => const
     StartScreen()),
