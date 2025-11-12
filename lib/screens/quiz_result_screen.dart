@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 class QuizResultScreen extends StatelessWidget {
   const QuizResultScreen({super.key});
 
-  static const int _fallbackTotal = 5;
-  static const int _fallbackCorrect = 4;
+  static const int _fallbackTotal = 2;
+  static const int _fallbackCorrect = 1;
 
   @override
   Widget build(BuildContext context) {

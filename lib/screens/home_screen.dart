@@ -1,279 +1,215 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../router.dart';
+import 'package:fl_chart/fl_chart.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  /// 주간 학습량(월~일)
+  List<double> weeklyData = [2.5, 3.0, 4.2, 3.5, 5.0, 4.8, 3.3];
+
+  void setWeeklyData(List<double> data) {
+    if (data.length != 7) return;
+    setState(() => weeklyData = data);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // 더미 데이터 (나중에 상태 연결)
-    final String selectedCharacterName = '캐릭터 1번';
-    final String selectedCharacterImage = 'https://placehold.co/116x119';
-
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF7FF), // 바깥 전체 배경
-
-      // ===== 상단바 =====
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(64),
-        child: SafeArea(
-          bottom: false,
-          child: Container(
-            width: double.infinity,
-            color: const Color(0xFFFEF7FF),
-            padding: const EdgeInsets.only(
-              top: 8,
-              left: 4,
-              right: 4,
-              bottom: 12,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _roundIconButton(
-                  icon: Icons.person,
-                  onTap: () {
-                    // TODO: 마이페이지 라우팅 붙이면 여기서 push
-                  },
-                ),
-                Row(
-                  children: [
-                    _roundIconButton(
-                      icon: Icons.notifications_outlined,
-                      onTap: () {
-                        // TODO: 알림 화면
-                      },
-                    ),
-                    _roundIconButton(
-                      icon: Icons.settings_outlined,
-                      onTap: () {
-                        context.push(R.settings);
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-
-      // ===== 가운데 본문 =====
-      // Expanded 비율로 반반 나눠야 하니까 Column + Expanded로 짜고
-      // 전체 프레임 모양(455폭, 외곽선, 둥근 모서리 등)은 body에서 직접 그림.
+      backgroundColor: const Color(0xFFEDE8E3),
       body: SafeArea(
-        top: false,
-        bottom: false,
-        child: Center(
-          child: Container(
-            width: 455,
-            // 바깥 프레임 (기기 모형)
-            decoration: ShapeDecoration(
-              color: const Color(0xFFFEF7FF),
-              shape: RoundedRectangleBorder(
-                side: const BorderSide(
-                  width: 8,
-                  strokeAlign: BorderSide.strokeAlignOutside,
-                  color: Color(0xFFCAC4D0),
-                ),
-                borderRadius: BorderRadius.circular(28),
-              ),
-            ),
-            // 안쪽은 상단만 둥글고, 하단은 직각으로 떨어지게 해서
-            // bottomNavigationBar랑 만나는 부분에 둥근 그림자 안 보이게 함.
-            child: Column(
-              children: [
-                // 이 Expanded 2개가 각각 화면 높이의 반씩 차지
-                Expanded(
-                  child: _CharacterSection(
-                    selectedCharacterImage: selectedCharacterImage,
-                    selectedCharacterName: selectedCharacterName,
-                  ),
-                ),
-                Expanded(
-                  child: _QuizSection(),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-
-      // ===== 하단 네비게이션 바 =====
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF3EDF7), // Schemes-Surface-Container
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _BottomNavItem(
-                label: '메인 화면',
-                icon: Icons.home,
-                active: true,
-                onTap: () {
-                  // 이미 홈
-                },
+              // ===== 상단: 환영합니다 =====
+              Row(
+                children: const [
+                  Icon(Icons.wb_sunny_outlined, size: 18, color: Color(0xFF6B6B6B)),
+                  SizedBox(width: 6),
+                  Text(
+                    '환영합니다!',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B6B6B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              _BottomNavItem(
-                label: '마이 페이지',
-                icon: Icons.person_outline,
-                active: false,
-                onTap: () {
-                  // TODO: 마이페이지 라우트 붙이면 사용
-                  // context.push(R.myPage);
-                },
+              const SizedBox(height: 8),
+
+              // ===== 헤더 =====
+              _HeaderSection(
+                tierCard: _InfoCard(
+                  // 왼쪽 아이콘 제거
+                  leading: const SizedBox.shrink(),
+                  // ✅ 제목 오른쪽에 이모지 배치
+                  title: '내 티어: 새싹',
+                  titleWidget: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        '내 티어: 새싹',
+                        style: TextStyle(
+                          color: Color(0xFF2C2C2C),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Text('🌱', style: TextStyle(fontSize: 26)),
+                    ],
+                  ),
+                  subtitle: '퀴즈를 풀어 단계를 올려보세요!',
+                  onTap: () {},
+                  showChevron: false,
+                  backgroundColor: Colors.white,
+                  // ✅ 티어 카드 전용: 세로 패딩 축소로 아래 여백 제거
+                  contentPadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 오늘의 퀴즈 카드 (🎓 배경/테두리 없음, 크게)
+              _InfoCard(
+                leading: const _LargeEmoji(emoji: '🎓'),
+                title: '오늘의 퀴즈',
+                subtitle: '한국 사회 전반에 대한 정보를 담은 퀴즈!',
+                onTap: () {},
+                showChevron: false,
+                backgroundColor: Colors.white,
+              ),
+
+              const SizedBox(height: 12),
+
+              // 학습 현황
+              _ChartCard(
+                title: '내 학습 현황',
+                child: _WeeklyStudyChart(weeklyData: weeklyData),
+                onTap: () {},
+                backgroundColor: Colors.white,
               ),
             ],
           ),
+        ),
+      ),
+
+      // ===== 하단 네비게이션 (선택 시 타원 배경 + 아이콘 흰색) =====
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFEDE8E2),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+
+          // 라벨(텍스트) 색: 선택/비선택 구분
+          selectedItemColor: const Color(0xFF2C2C2C),
+          unselectedItemColor: const Color(0xFF6D6D6D),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+
+          // 아이콘 색은 _PillIcon 내부에서 직접 지정 (선택 시 흰색)
+          items: [
+            BottomNavigationBarItem(
+              icon: const _PillIcon(icon: Icons.home_rounded, active: false),
+              activeIcon: const _PillIcon(icon: Icons.home_rounded, active: true),
+              label: '메인',
+            ),
+            BottomNavigationBarItem(
+              icon: const _PillIcon(icon: Icons.lightbulb_outline, active: false),
+              activeIcon: const _PillIcon(icon: Icons.lightbulb_outline, active: true),
+              label: '정보 모음',
+            ),
+            BottomNavigationBarItem(
+              icon: const _PillIcon(icon: Icons.bar_chart_rounded, active: false),
+              activeIcon: const _PillIcon(icon: Icons.bar_chart_rounded, active: true),
+              label: '학습 현황',
+            ),
+            BottomNavigationBarItem(
+              icon: const _PillIcon(icon: Icons.settings_outlined, active: false),
+              activeIcon: const _PillIcon(icon: Icons.settings_outlined, active: true),
+              label: '설정',
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// =====================================================
-// 상단 우측/좌측 둥근 아이콘 버튼
-// =====================================================
-Widget _roundIconButton({
-  required IconData icon,
-  required VoidCallback onTap,
-  double size = 40,
-  Color? bgColor,
-}) {
-  return InkWell(
-    customBorder: const CircleBorder(),
-    onTap: onTap,
-    child: Container(
-      width: 48,
-      height: 48,
-      alignment: Alignment.center,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: ShapeDecoration(
-          color: bgColor,
-          shape: const CircleBorder(),
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          icon,
-          size: 24,
-          color: Colors.black,
-        ),
-      ),
-    ),
-  );
-}
-
-// =====================================================
-// 내 캐릭터 섹션 (화면 상단 절반)
-// =====================================================
-class _CharacterSection extends StatelessWidget {
-  final String selectedCharacterImage;
-  final String selectedCharacterName;
-
-  const _CharacterSection({
-    required this.selectedCharacterImage,
-    required this.selectedCharacterName,
-  });
+/// ===== 상단 헤더 =====
+class _HeaderSection extends StatelessWidget {
+  final Widget tierCard;
+  const _HeaderSection({required this.tierCard});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // 위쪽/아래쪽 영역 경계를 깔끔하게 하기 위해 배경은 그대로 Surface 색
-      color: const Color(0xFFFEF7FF),
-      padding: const EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: 8,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    const double headerHeight = 180;
+    return SizedBox(
+      height: headerHeight,
+      child: Stack(
         children: [
-          // "내 캐릭터  >" 헤더
-          InkWell(
-            onTap: () {
-              context.push(R.characterView);
-            },
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '내 캐릭터',
-                    style: TextStyle(
-                      color: const Color(0xFF1D1B20),
-                      fontSize: 22,
-                      fontFamily: 'Roboto',
-                      fontWeight: FontWeight.w400,
-                      height: 1.27,
-                    ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 100,
+                  child: Image.asset(
+                    'assets/images/tiger_image.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Colors.black,
-                  size: 24,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // 선택된 캐릭터 카드 하나만 표시
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
-                context.push(R.characterView);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFECE6F0),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 캐릭터 이미지
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        selectedCharacterImage,
-                        width: 116,
-                        height: 119,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // 캐릭터 이름
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          selectedCharacterName,
-                          style: TextStyle(
-                            color: const Color(0xFF1D1B20),
-                            fontSize: 16,
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.w500,
-                            height: 1.50,
-                            letterSpacing: 0.10,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: SizedBox(
+                    height: 90,
+                    child: tierCard, // ✅ tierCard 자체 패딩을 줄여 하단 여백 제거
+                  ),
                 ),
               ),
+            ],
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: const [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Color(0xFFB7D3D9),
+                  child: Icon(Icons.person, color: Colors.white, size: 20),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  '홍길동',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF2C2C2C),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -282,234 +218,237 @@ class _CharacterSection extends StatelessWidget {
   }
 }
 
-// =====================================================
-// 퀴즈 섹션 (화면 하단 절반)
-// =====================================================
-class _QuizSection extends StatelessWidget {
-  const _QuizSection();
+/// ===== 카드 공통 =====
+class _InfoCard extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final Widget? titleWidget; // ✅ 추가: 제목 자리에 커스텀 위젯 사용
+  final String subtitle;
+  final VoidCallback? onTap;
+  final bool showChevron;
+  final Color backgroundColor;
+  final EdgeInsets contentPadding; // 내부 패딩 커스터마이즈
+
+  const _InfoCard({
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    this.titleWidget,
+    this.onTap,
+    this.showChevron = true,
+    this.backgroundColor = const Color(0xFFF6F1EB),
+    this.contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // 아랫부분도 같은 배경색으로, 둥근 모서리 없이 하단바랑 바로 맞닿게
-      color: const Color(0xFFFEF7FF),
-      padding: const EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: 0, // bottomNavBar랑 딱 붙도록 0
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // "퀴즈  >" 헤더
-          InkWell(
-            onTap: () {
-              context.push(R.quiz);
-            },
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '퀴즈',
-                    style: TextStyle(
-                      color: const Color(0xFF1D1B20),
-                      fontSize: 22,
-                      fontFamily: 'Roboto',
-                      fontWeight: FontWeight.w400,
-                      height: 1.27,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Colors.black,
-                  size: 24,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // 두 개의 퀴즈 카드 (왼쪽 큰 카드 + 오른쪽 얇은 카드)
-          SizedBox(
-            height: 150,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 왼쪽 큰 카드
-                Expanded(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(28),
-                    onTap: () {
-                      context.push(R.quiz);
-                    },
-                    child: Container(
-                      decoration: ShapeDecoration(
-                        image: const DecorationImage(
-                          image: NetworkImage("https://placehold.co/359x205"),
-                          fit: BoxFit.cover,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // 오른쪽 얇은 카드
-                InkWell(
-                  borderRadius: BorderRadius.circular(28),
-                  onTap: () {
-                    context.push(R.quiz);
-                  },
-                  child: Container(
-                    width: 56,
-                    decoration: ShapeDecoration(
-                      image: const DecorationImage(
-                        image: NetworkImage("https://placehold.co/56x205"),
-                        fit: BoxFit.cover,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // 퀴즈 정보 + 즉시 시작(▶) 버튼
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: contentPadding,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 설명 텍스트
+              leading,
+              // leading이 없을 때 좌우 간격을 과도하게 차지하지 않도록 보정
+              if (leading is! SizedBox) const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ✅ titleWidget이 있으면 우선 사용
+                    titleWidget ??
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: Color(0xFF2C2C2C),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                    const SizedBox(height: 4),
                     Text(
-                      '카테고리 이름',
-                      style: TextStyle(
-                        color: const Color(0xFF1D1B20),
-                        fontSize: 16,
-                        fontFamily: 'Roboto',
-                        fontWeight: FontWeight.w400,
-                        height: 1.50,
-                        letterSpacing: 0.50,
+                      subtitle,
+                      style: const TextStyle(
+                        color: Color(0xFF9B9B9B),
+                        fontSize: 13,
+                        height: 1.1,
                       ),
-                    ),
-                    Text(
-                      '난이도: 쉬움 • 최근 점수 8/10',
-                      style: TextStyle(
-                        color: const Color(0xFF49454F),
-                        fontSize: 14,
-                        fontFamily: 'Roboto',
-                        fontWeight: FontWeight.w400,
-                        height: 1.43,
-                        letterSpacing: 0.25,
-                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-
-              // 재생 버튼
-              InkWell(
-                customBorder: const CircleBorder(),
-                onTap: () {
-                  context.push(R.quiz);
-                },
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const ShapeDecoration(
-                    color: Color(0xFFE8DEF8),
-                    shape: CircleBorder(),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
-                    size: 28,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
+              if (showChevron)
+                const Icon(Icons.chevron_right_rounded, color: Color(0xFF9B9B9B)),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// =====================================================
-// 하단 네비게이션 바 아이템 (2개만 남김)
-// =====================================================
-class _BottomNavItem extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool active;
-  final VoidCallback onTap;
+/// ===== 그래프 카드 =====
+class _ChartCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  final VoidCallback? onTap;
+  final Color backgroundColor;
 
-  const _BottomNavItem({
-    required this.label,
-    required this.icon,
-    required this.active,
-    required this.onTap,
+  const _ChartCard({
+    required this.title,
+    required this.child,
+    this.onTap,
+    this.backgroundColor = const Color(0xFFF6F1EB),
   });
 
   @override
   Widget build(BuildContext context) {
-    final Color activeBg = const Color(0xFFE8DEF8); // Secondary-Container
-    final Color activeText = const Color(0xFF625B71); // Secondary
-    final Color inactiveText = const Color(0xFF49454F); // On-Surface-Variant
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 10, 12),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF212121),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: Color(0xFF9B9B9B)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(height: 220, child: child),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
-            child: Container(
-              width: 56,
-              height: 32,
-              decoration: BoxDecoration(
-                color: active ? activeBg : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                icon,
-                size: 24,
-                color: Colors.black,
+/// ===== 배경/테두리 없는 큰 이모티콘 =====
+class _LargeEmoji extends StatelessWidget {
+  final String emoji;
+  const _LargeEmoji({required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      emoji,
+      style: const TextStyle(fontSize: 56),
+    );
+  }
+}
+
+/// ===== 새싹 배지 (텍스트 크기 맞춤 + 여백 최소화) =====
+class _EmojiBadge extends StatelessWidget {
+  final String emoji;
+  const _EmojiBadge({required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, right: 4),
+      child: Text(
+        emoji,
+        style: const TextStyle(
+          fontSize: 30, // 텍스트 높이에 자연스럽게 어울리는 크기
+        ),
+      ),
+    );
+  }
+}
+
+/// ===== 네비게이션: 아이콘 뒤 타원 배경 위젯 =====
+class _PillIcon extends StatelessWidget {
+  final IconData icon;
+  final bool active;
+  const _PillIcon({required this.icon, required this.active});
+
+  @override
+  Widget build(BuildContext context) {
+    const pillColor = Color(0xFF4E7C88); // 선택 배경
+    final iconColor = active ? Colors.white : const Color(0xFF6D6D6D);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      padding: EdgeInsets.symmetric(
+        horizontal: active ? 12 : 0,
+        vertical: active ? 6 : 0,
+      ),
+      decoration: BoxDecoration(
+        color: active ? pillColor : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Icon(icon, color: iconColor),
+    );
+  }
+}
+
+/// ===== 막대 그래프 (점선 + y축 제거) =====
+class _WeeklyStudyChart extends StatelessWidget {
+  final List<double> weeklyData;
+
+  const _WeeklyStudyChart({required this.weeklyData});
+
+  @override
+  Widget build(BuildContext context) {
+    const days = ['월', '화', '수', '목', '금', '토', '일'];
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: 6,
+        minY: 0,
+        titlesData: FlTitlesData(
+          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, _) => Text(
+                days[value.toInt()],
+                style: const TextStyle(fontSize: 11),
               ),
             ),
           ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: active ? activeText : inactiveText,
-                fontSize: 12,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-                height: 1.33,
-                letterSpacing: 0.50,
+        ),
+        borderData: FlBorderData(show: false),
+        gridData: const FlGridData(show: false),
+        barGroups: List.generate(
+          weeklyData.length,
+              (i) => BarChartGroupData(
+            x: i,
+            barRods: [
+              BarChartRodData(
+                toY: weeklyData[i],
+                width: 18,
+                borderRadius: BorderRadius.circular(4),
+                color: const Color(0xFF4E7C88),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -23,7 +23,8 @@ class QuizController {
   final List<Question> questions;
 
   int index = 0;
-  int? selected;
+  int? selected;        // 화면에 현재 보이는 선택
+  int? firstSelected;   // ✅ 채점에 쓰일 '처음 선택'
   int correctCount = 0;
   QuizStage stage = QuizStage.question;
 
@@ -32,22 +33,34 @@ class QuizController {
   Question get q => questions[index];
   int get total => questions.length;
   bool get isLast => index == total - 1;
-  bool get isCorrect => selected != null && selected == q.answerIndex;
+  bool get hasSelection => selected != null;
+  bool get isCorrectNow => selected != null && selected == q.answerIndex;           // 화면 표시용
+  bool get isFirstCorrect => firstSelected != null && firstSelected == q.answerIndex; // 채점용
   double get progress => (index + 1) / total;
   Choice? get selectedChoice => (selected == null) ? null : q.choices[selected!];
 
+  /// ✅ 언제든 다른 선지로 변경 가능
+  /// 처음 선택일 때만 firstSelected를 기록(채점에 사용)
   void select(int i) {
-    if (stage != QuizStage.question) return;
-    selected = i;
-    stage = QuizStage.feedback;
-    if (isCorrect) correctCount++;
+    if (stage == QuizStage.question) {
+      stage = QuizStage.feedback;
+    }
+    selected ??= i;      // 화면 첫 선택 기록
+    firstSelected ??= i; // ✅ 채점용 첫 선택 기록(이미 있으면 유지)
+    selected = i;        // 화면용 현재 선택은 언제든 변경 가능
   }
 
+  /// ✅ 다음 문제로 진행(채점은 '처음 선택' 기준)
   bool next() {
     if (stage != QuizStage.feedback) return false;
+
+    if (isFirstCorrect) correctCount++;
+
     if (isLast) return true;
+
     index++;
     selected = null;
+    firstSelected = null;   // ✅ 다음 문제에서 다시 초기화
     stage = QuizStage.question;
     return false;
   }
@@ -90,11 +103,11 @@ class _QuizScreenState extends State<QuizScreen> {
     ]);
   }
 
+  /// 선택한 타일만 강조(정답/오답을 전체에 드러내지 않음)
   Color _optionBg(int i) {
-    if (c.stage == QuizStage.feedback) {
-      if (c.isCorrect && i == c.q.answerIndex) return const Color(0xFF6D9E8D);
-      if (!c.isCorrect && c.selected == i && i != c.q.answerIndex) {
-        return const Color(0xFFCC8275);
+    if (c.stage == QuizStage.feedback && c.selected != null) {
+      if (i == c.selected) {
+        return c.isCorrectNow ? const Color(0xFF6D9E8D) : const Color(0xFFCC8275);
       }
     }
     return const Color(0xFFF4F3F6);
@@ -115,6 +128,8 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     final double filledWidth = 300 * c.progress;
+    final bool nextEnabled = c.stage == QuizStage.feedback && c.hasSelection;
+
     return Scaffold(
       backgroundColor: const Color(0xFFEDE8E3),
       body: SafeArea(
@@ -199,7 +214,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   ),
                 ),
 
-                // === 피드백 패널 (캐릭터 + 해설, 배경색 동일) ===
+                // 피드백 패널(선택한 보기의 해설만 표시)
                 if (c.stage == QuizStage.feedback && c.selectedChoice != null)
                   Positioned(
                     left: 22,
@@ -208,13 +223,12 @@ class _QuizScreenState extends State<QuizScreen> {
                       width: 333,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: c.isCorrect ? const Color(0xFF6D9E8D) : const Color(0xFFCC8275),
+                        color: c.isCorrectNow ? const Color(0xFF6D9E8D) : const Color(0xFFCC8275),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 🐯 캐릭터 (동그라미 없이 배경색 동일하게 삽입)
                           Image.asset(
                             'assets/images/tiger_image.png',
                             width: 60,
@@ -222,15 +236,13 @@ class _QuizScreenState extends State<QuizScreen> {
                             fit: BoxFit.contain,
                           ),
                           const SizedBox(width: 12),
-
-                          // 💬 해설 텍스트
                           Expanded(
                             child: Text(
-                              c.isCorrect
+                              c.isCorrectNow
                                   ? '정답입니다! ${c.selectedChoice!.explanation}'
                                   : '오답입니다. ${c.selectedChoice!.explanation}',
                               style: const TextStyle(
-                                color: Colors.white, // 배경색 위에서 가독성 확보
+                                color: Colors.white,
                                 fontSize: 13,
                                 fontFamily: 'Roboto',
                                 fontWeight: FontWeight.w600,
@@ -244,8 +256,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
                   ),
 
-
-                // 보기
+                // 보기(항상 onTap 허용: 자유롭게 갈아탈 수 있음)
                 for (int i = 0; i < c.q.choices.length; i++)
                   Positioned(
                     left: 20,
@@ -255,7 +266,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       text: c.q.choices[i].text,
                       color: _optionBg(i),
                       isSelected: c.selected == i,
-                      onTap: c.stage == QuizStage.question ? () => _onTapChoice(i) : null,
+                      onTap: () => _onTapChoice(i),
                     ),
                   ),
 
@@ -263,26 +274,23 @@ class _QuizScreenState extends State<QuizScreen> {
                 Positioned(
                   left: 20,
                   top: 694,
-                  child: Opacity(
-                    opacity: c.stage == QuizStage.feedback ? 1.0 : 0.5,
-                    child: GestureDetector(
-                      onTap: c.stage == QuizStage.feedback ? _onTapNext : null,
-                      child: Container(
-                        width: 335,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4E7C88),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          (c.isLast && c.stage == QuizStage.feedback) ? '결과 보기' : '계속',
-                          style: const TextStyle(
-                            color: Color(0xFFF4F3F6),
-                            fontSize: 16,
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.w600,
-                          ),
+                  child: GestureDetector(
+                    onTap: nextEnabled ? _onTapNext : null,
+                    child: Container(
+                      width: 335,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: nextEnabled ? const Color(0xFF4E7C88) : const Color(0xFFB0BEC5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        (c.isLast && c.stage == QuizStage.feedback) ? '결과 보기' : '계속',
+                        style: const TextStyle(
+                          color: Color(0xFFF4F3F6),
+                          fontSize: 16,
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -297,7 +305,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 }
 
-/// 보기 타일 (왼쪽 동그라미만)
+/// 보기 타일
 class _OptionTile extends StatelessWidget {
   final String letter;
   final String text;
@@ -327,7 +335,7 @@ class _OptionTile extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // 왼쪽 동그라미 (선택 전: A/B/C/D, 선택 후: 체크)
+            // 왼쪽 동그라미
             Positioned(
               left: 16,
               top: 12,
@@ -340,7 +348,7 @@ class _OptionTile extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: isSelected
-                    ? const Icon(Icons.check, color: Color(0xFF4E7C88), size: 20)
+                    ? const Icon(Icons.check, size: 20, color: Color(0xFF4E7C88))
                     : Text(
                   letter,
                   style: const TextStyle(
