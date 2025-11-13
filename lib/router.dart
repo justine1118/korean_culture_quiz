@@ -11,12 +11,11 @@ import 'screens/quiz_result_screen.dart';
 import 'screens/achievement_screen.dart';
 import 'screens/learning_status_screen.dart';
 import 'screens/setting_screen.dart';
-import 'screens/difficulty_and_study_select_screen.dart';
-import 'screens/character_select_screen.dart';
-import 'screens/character_view_screen.dart';
-import 'screens/character_change_screen.dart';
 
-//라우트 경로 상수
+// ⭐ 새로 추가
+import 'screens/information_screen.dart';
+
+// 라우트 경로 상수
 class R {
   static const start = '/start';
   static const login = '/login';
@@ -34,39 +33,94 @@ class R {
   static const characterSelect = '/character/select';
   static const characterView = '/character/view';
   static const characterChange = '/character/change';
+
+  // ⭐ 추가된 정보 모음 페이지 경로
+  static const information = '/information';
 }
 
 /// 전역 라우터
 final GoRouter appRouter = GoRouter(
-  //시작 화면 변경시 아래의 R. 변경하기
-  initialLocation: R.signup,
+  initialLocation: R.information, // 기존 유지
   routes: [
-    GoRoute(path: R.start,       name: 'start',        builder: (_, __) => const
-    StartScreen()),
-    GoRoute(path: R.login,       name: 'login',        builder: (_, __) => const LoginScreen()),
-    GoRoute(path: R.signup,      name: 'signup',       builder: (_, __) => const SignupScreen()),
-    GoRoute(path: R.home,        name: 'home',         builder: (_, __) => const HomeScreen()),
+    GoRoute(
+      path: R.start,
+      name: 'start',
+      builder: (_, __) => const StartScreen(),
+    ),
+    GoRoute(
+      path: R.login,
+      name: 'login',
+      builder: (_, __) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: R.signup,
+      name: 'signup',
+      builder: (_, __) => const SignupScreen(),
+    ),
+    GoRoute(
+      path: R.home,
+      name: 'home',
+      builder: (_, __) => const HomeScreen(),
+    ),
 
-    GoRoute(path: R.quiz,        name: 'quiz',         builder: (_, __) => const QuizScreen()),
-    GoRoute(path: R.quizResult,  name: 'quizResult',    builder: (_, __) => const QuizResultScreen()),
+    // ⭐ 정보 모음 페이지 추가
+    GoRoute(
+      path: R.information,
+      name: 'information',
+      builder: (_, __) => const InformationScreen(),
+    ),
 
-    GoRoute(path: R.achievements,    name: 'achievements',    builder: (_, __) => const AchievementScreen()),
-    GoRoute(path: R.learningStatus,  name: 'learningStatus',  builder: (_, __) => const LearningStatusScreen()),
-    GoRoute(path: R.settings,        name: 'settings',        builder: (_, __) => const SettingScreen()),
-    GoRoute(path: R.difficulty,      name: 'difficulty',      builder: (_, __) => const DifficultyAndStudySelectScreen( )),
+    GoRoute(
+      path: R.quiz,
+      name: 'quiz',
+      builder: (_, __) => const QuizScreen(),
+    ),
 
-    GoRoute(path: R.characterSelect, name: 'characterSelect', builder: (_, __) => const CharacterSelectScreen()),
-    GoRoute(path: R.characterView,   name: 'characterView',   builder: (_, __) => const CharacterViewScreen()),
-    GoRoute(path: R.characterChange, name: 'characterChange', builder: (_, __) => const CharacterChangeScreen()),
+    // 퀴즈 결과 화면
+    GoRoute(
+      path: R.quizResult,
+      name: 'quizResult',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, int>?;
+
+        final total = extra?['total'] ?? 2;
+        final correct = extra?['correct'] ?? 1;
+
+        return QuizResultScreen(
+          total: total,
+          correct: correct,
+        );
+      },
+    ),
+
+    GoRoute(
+      path: R.achievements,
+      name: 'achievements',
+      builder: (_, __) => const AchievementScreen(),
+    ),
+    GoRoute(
+      path: R.learningStatus,
+      name: 'learningStatus',
+      builder: (_, __) => const LearningStatusScreen(),
+    ),
+    GoRoute(
+      path: R.settings,
+      name: 'settings',
+      builder: (_, __) => const SettingScreen(),
+    ),
   ],
-  // 404 등 에러 처리(임시)
+
+  // 404 에러 처리
   errorBuilder: (context, state) => Scaffold(
     appBar: AppBar(title: const Text('페이지를 찾을 수 없습니다')),
     body: Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(state.error?.toString() ?? 'Unknown route', textAlign: TextAlign.center),
+          Text(
+            state.error?.toString() ?? 'Unknown route',
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 12),
           FilledButton(
             onPressed: () => context.go(R.start),

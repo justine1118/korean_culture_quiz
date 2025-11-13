@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
+import '../router.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -79,23 +81,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 16),
 
-              // 오늘의 퀴즈 카드 (🎓 배경/테두리 없음, 크게)
+              // ===== 오늘의 퀴즈 카드 =====
               _InfoCard(
                 leading: const _LargeEmoji(emoji: '🎓'),
                 title: '오늘의 퀴즈',
                 subtitle: '한국 사회 전반에 대한 정보를 담은 퀴즈!',
-                onTap: () {},
+                // ✅ 여기서 퀴즈 화면으로 이동
+                onTap: () => context.go(R.quiz),
                 showChevron: false,
                 backgroundColor: Colors.white,
               ),
 
               const SizedBox(height: 12),
 
-              // 학습 현황
+              // ===== 학습 현황 =====
               _ChartCard(
                 title: '내 학습 현황',
                 child: _WeeklyStudyChart(weeklyData: weeklyData),
-                onTap: () {},
+                onTap: () {
+                  // 나중에 학습 현황 상세 페이지 연결 가능
+                },
                 backgroundColor: Colors.white,
               ),
             ],
@@ -103,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      // ===== 하단 네비게이션 (선택 시 타원 배경 + 아이콘 흰색) =====
+      // ===== 하단 네비게이션 =====
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Color(0xFFEDE8E2),
@@ -111,36 +116,50 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
-          onTap: (i) => setState(() => _currentIndex = i),
+          onTap: (i) {
+            setState(() => _currentIndex = i);
+
+            // 👉 탭에 따라 실제 라우팅
+            switch (i) {
+              case 0:
+                context.go(R.home);            // 메인
+                break;
+              case 1:
+                context.go(R.information);     // 정보 모음
+                break;
+              case 2:
+                context.go(R.learningStatus);  // 학습 현황
+                break;
+              case 3:
+                context.go(R.settings);        // 설정
+                break;
+            }
+          },
           backgroundColor: Colors.transparent,
           elevation: 0,
           type: BottomNavigationBarType.fixed,
-
-          // 라벨(텍스트) 색: 선택/비선택 구분
           selectedItemColor: const Color(0xFF2C2C2C),
           unselectedItemColor: const Color(0xFF6D6D6D),
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-
-          // 아이콘 색은 _PillIcon 내부에서 직접 지정 (선택 시 흰색)
-          items: [
+          items: const [
             BottomNavigationBarItem(
-              icon: const _PillIcon(icon: Icons.home_rounded, active: false),
-              activeIcon: const _PillIcon(icon: Icons.home_rounded, active: true),
+              icon: _PillIcon(icon: Icons.home_rounded, active: false),
+              activeIcon: _PillIcon(icon: Icons.home_rounded, active: true),
               label: '메인',
             ),
             BottomNavigationBarItem(
-              icon: const _PillIcon(icon: Icons.lightbulb_outline, active: false),
-              activeIcon: const _PillIcon(icon: Icons.lightbulb_outline, active: true),
+              icon: _PillIcon(icon: Icons.lightbulb_outline, active: false),
+              activeIcon: _PillIcon(icon: Icons.lightbulb_outline, active: true),
               label: '정보 모음',
             ),
             BottomNavigationBarItem(
-              icon: const _PillIcon(icon: Icons.bar_chart_rounded, active: false),
-              activeIcon: const _PillIcon(icon: Icons.bar_chart_rounded, active: true),
+              icon: _PillIcon(icon: Icons.bar_chart_rounded, active: false),
+              activeIcon: _PillIcon(icon: Icons.bar_chart_rounded, active: true),
               label: '학습 현황',
             ),
             BottomNavigationBarItem(
-              icon: const _PillIcon(icon: Icons.settings_outlined, active: false),
-              activeIcon: const _PillIcon(icon: Icons.settings_outlined, active: true),
+              icon: _PillIcon(icon: Icons.settings_outlined, active: false),
+              activeIcon: _PillIcon(icon: Icons.settings_outlined, active: true),
               label: '설정',
             ),
           ],
@@ -182,7 +201,7 @@ class _HeaderSection extends StatelessWidget {
                   alignment: Alignment.bottomLeft,
                   child: SizedBox(
                     height: 90,
-                    child: tierCard, // ✅ tierCard 자체 패딩을 줄여 하단 여백 제거
+                    child: tierCard,
                   ),
                 ),
               ),
@@ -222,12 +241,12 @@ class _HeaderSection extends StatelessWidget {
 class _InfoCard extends StatelessWidget {
   final Widget leading;
   final String title;
-  final Widget? titleWidget; // ✅ 추가: 제목 자리에 커스텀 위젯 사용
+  final Widget? titleWidget;
   final String subtitle;
   final VoidCallback? onTap;
   final bool showChevron;
   final Color backgroundColor;
-  final EdgeInsets contentPadding; // 내부 패딩 커스터마이즈
+  final EdgeInsets contentPadding;
 
   const _InfoCard({
     required this.leading,
@@ -254,13 +273,11 @@ class _InfoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               leading,
-              // leading이 없을 때 좌우 간격을 과도하게 차지하지 않도록 보정
               if (leading is! SizedBox) const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ✅ titleWidget이 있으면 우선 사용
                     titleWidget ??
                         Text(
                           title,
@@ -345,7 +362,6 @@ class _ChartCard extends StatelessWidget {
   }
 }
 
-/// ===== 배경/테두리 없는 큰 이모티콘 =====
 class _LargeEmoji extends StatelessWidget {
   final String emoji;
   const _LargeEmoji({required this.emoji});
@@ -359,7 +375,6 @@ class _LargeEmoji extends StatelessWidget {
   }
 }
 
-/// ===== 새싹 배지 (텍스트 크기 맞춤 + 여백 최소화) =====
 class _EmojiBadge extends StatelessWidget {
   final String emoji;
   const _EmojiBadge({required this.emoji});
@@ -371,14 +386,13 @@ class _EmojiBadge extends StatelessWidget {
       child: Text(
         emoji,
         style: const TextStyle(
-          fontSize: 30, // 텍스트 높이에 자연스럽게 어울리는 크기
+          fontSize: 30,
         ),
       ),
     );
   }
 }
 
-/// ===== 네비게이션: 아이콘 뒤 타원 배경 위젯 =====
 class _PillIcon extends StatelessWidget {
   final IconData icon;
   final bool active;
@@ -386,7 +400,7 @@ class _PillIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const pillColor = Color(0xFF4E7C88); // 선택 배경
+    const pillColor = Color(0xFF4E7C88);
     final iconColor = active ? Colors.white : const Color(0xFF6D6D6D);
 
     return AnimatedContainer(
@@ -404,7 +418,6 @@ class _PillIcon extends StatelessWidget {
   }
 }
 
-/// ===== 막대 그래프 (점선 + y축 제거) =====
 class _WeeklyStudyChart extends StatelessWidget {
   final List<double> weeklyData;
 

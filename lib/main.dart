@@ -11,10 +11,7 @@ import 'screens/quiz_result_screen.dart';
 import 'screens/achievement_screen.dart';
 import 'screens/learning_status_screen.dart';
 import 'screens/setting_screen.dart';
-import 'screens/difficulty_and_study_select_screen.dart';
-import 'screens/character_select_screen.dart';
-import 'screens/character_view_screen.dart';
-import 'screens/character_change_screen.dart';
+
 
 void main() {
   runApp(const MyApp());

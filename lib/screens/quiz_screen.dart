@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 
 /// ===== 모델 =====
 class Choice {
@@ -85,10 +86,15 @@ class _QuizScreenState extends State<QuizScreen> {
         choices: [
           Choice('불고기', explanation: '불고기는 한국의 대표적인 구이 요리입니다. 따라서 정답이 아닙니다.'),
           Choice('비빔밥', explanation: '비빔밥은 한국의 대표적인 혼합밥 요리입니다. 따라서 정답이 아닙니다.'),
-          Choice('동파육',
-              explanation: '동파육은 중국 요리로, 돼지고기를 간장과 설탕으로 졸여 만든 음식입니다.', isAnswer: true),
-          Choice('삼계탕',
-              explanation: '삼계탕은 닭과 인삼, 대추, 찹쌀 등을 넣고 끓이는 한국 보양식입니다. 정답이 아닙니다.'),
+          Choice(
+            '동파육',
+            explanation: '동파육은 중국 요리로, 돼지고기를 간장과 설탕으로 졸여 만든 음식입니다.',
+            isAnswer: true,
+          ),
+          Choice(
+            '삼계탕',
+            explanation: '삼계탕은 닭과 인삼, 대추, 찹쌀 등을 넣고 끓이는 한국 보양식입니다. 정답이 아닙니다.',
+          ),
         ],
       ),
       Question(
@@ -103,7 +109,6 @@ class _QuizScreenState extends State<QuizScreen> {
     ]);
   }
 
-  /// 선택한 타일만 강조(정답/오답을 전체에 드러내지 않음)
   Color _optionBg(int i) {
     if (c.stage == QuizStage.feedback && c.selected != null) {
       if (i == c.selected) {
@@ -119,7 +124,14 @@ class _QuizScreenState extends State<QuizScreen> {
     if (c.stage != QuizStage.feedback) return;
     final goResult = c.next();
     if (goResult && mounted) {
-      context.go('/quiz/result', extra: {'total': c.total, 'correct': c.correctCount});
+      // ✅ 점수/문항 수를 함께 결과 화면으로 전달
+      context.go(
+        R.quizResult,
+        extra: {
+          'total': c.total,
+          'correct': c.correctCount,
+        },
+      );
     } else {
       setState(() {});
     }
@@ -141,7 +153,6 @@ class _QuizScreenState extends State<QuizScreen> {
             decoration: const BoxDecoration(color: Color(0xFFEDE8E3)),
             child: Stack(
               children: [
-                // 상단 타이틀
                 const Positioned(
                   left: 143,
                   top: 56,
@@ -214,7 +225,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   ),
                 ),
 
-                // 피드백 패널(선택한 보기의 해설만 표시)
+                // 피드백 패널
                 if (c.stage == QuizStage.feedback && c.selectedChoice != null)
                   Positioned(
                     left: 22,
@@ -256,7 +267,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
                   ),
 
-                // 보기(항상 onTap 허용: 자유롭게 갈아탈 수 있음)
+                // 보기들
                 for (int i = 0; i < c.q.choices.length; i++)
                   Positioned(
                     left: 20,
@@ -305,7 +316,6 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 }
 
-/// 보기 타일
 class _OptionTile extends StatelessWidget {
   final String letter;
   final String text;
@@ -335,7 +345,6 @@ class _OptionTile extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // 왼쪽 동그라미
             Positioned(
               left: 16,
               top: 12,
@@ -360,7 +369,6 @@ class _OptionTile extends StatelessWidget {
                 ),
               ),
             ),
-            // 보기 텍스트
             Positioned(
               left: 70,
               top: 20,

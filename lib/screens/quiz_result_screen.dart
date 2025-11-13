@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 
 class QuizResultScreen extends StatelessWidget {
-  const QuizResultScreen({super.key});
+  final int total;
+  final int correct;
 
-  static const int _fallbackTotal = 2;
-  static const int _fallbackCorrect = 1;
+  const QuizResultScreen({
+    super.key,
+    this.total = 2,   // 기본값 (직접 접근 시 대비)
+    this.correct = 1,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final int total = _fallbackTotal;
-    final int correct = _fallbackCorrect;
-
     return Scaffold(
       backgroundColor: const Color(0xFFEDE8E3),
       body: SafeArea(
@@ -23,7 +25,7 @@ class QuizResultScreen extends StatelessWidget {
             decoration: const BoxDecoration(color: Color(0xFFEDE8E3)),
             child: Stack(
               children: [
-                // 🐯 캐릭터 이미지 (텍스트 위로 이동)
+                // 🐯 캐릭터 이미지
                 Positioned(
                   left: 110,
                   top: 80,
@@ -144,7 +146,7 @@ class QuizResultScreen extends StatelessWidget {
                     child: const Icon(
                       Icons.check,
                       color: Colors.black,
-                      size: 22, // 아이콘 크기 (적당히 조정 가능)
+                      size: 22,
                     ),
                   ),
                 ),
@@ -179,11 +181,8 @@ class QuizResultScreen extends StatelessWidget {
                   top: 694,
                   child: GestureDetector(
                     onTap: () {
-                      if (Navigator.of(context).canPop()) {
-                        context.pop();
-                      } else {
-                        context.go('/home');
-                      }
+                      // ✅ 결과 확인 후 메인 화면으로 이동
+                      context.go(R.home);
                     },
                     child: Container(
                       width: 335,
