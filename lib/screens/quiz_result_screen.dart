@@ -182,7 +182,7 @@ class QuizResultScreen extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () {
                       // ✅ 결과 확인 후 메인 화면으로 이동
-                      context.go(R.home);
+                      context.go(R.main);
                     },
                     child: Container(
                       width: 335,

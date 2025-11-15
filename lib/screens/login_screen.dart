@@ -180,7 +180,7 @@ class LoginScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            onPressed: () => context.go(R.home), // TODO: 실제 인증 후 이동
+                            onPressed: () => context.go(R.main), // TODO: 실제 인증 후 이동
                             child: const Text(
                               '로그인',
                               style: TextStyle(

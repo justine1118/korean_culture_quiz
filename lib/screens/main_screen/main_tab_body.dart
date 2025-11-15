@@ -1,169 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:go_router/go_router.dart';
-import '../router.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class MainTabBody extends StatelessWidget {
+  final List<double> weeklyData;
+  final VoidCallback onTodayQuizTap; // ← 오늘의 퀴즈 탭 콜백
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
-  /// 주간 학습량(월~일)
-  List<double> weeklyData = [2.5, 3.0, 4.2, 3.5, 5.0, 4.8, 3.3];
-
-  void setWeeklyData(List<double> data) {
-    if (data.length != 7) return;
-    setState(() => weeklyData = data);
-  }
+  const MainTabBody({
+    super.key,
+    required this.weeklyData,
+    required this.onTodayQuizTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFEDE8E3),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ===== 상단: 환영합니다 =====
-              Row(
-                children: const [
-                  Icon(Icons.wb_sunny_outlined, size: 18, color: Color(0xFF6B6B6B)),
-                  SizedBox(width: 6),
-                  Text(
-                    '환영합니다!',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF6B6B6B),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // ===== 헤더 =====
-              _HeaderSection(
-                tierCard: _InfoCard(
-                  // 왼쪽 아이콘 제거
-                  leading: const SizedBox.shrink(),
-                  // ✅ 제목 오른쪽에 이모지 배치
-                  title: '내 티어: 새싹',
-                  titleWidget: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Text(
-                        '내 티어: 새싹',
-                        style: TextStyle(
-                          color: Color(0xFF2C2C2C),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Text('🌱', style: TextStyle(fontSize: 26)),
-                    ],
-                  ),
-                  subtitle: '퀴즈를 풀어 단계를 올려보세요!',
-                  onTap: () {},
-                  showChevron: false,
-                  backgroundColor: Colors.white,
-                  // ✅ 티어 카드 전용: 세로 패딩 축소로 아래 여백 제거
-                  contentPadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ===== 상단: 환영합니다 =====
+          Row(
+            children: const [
+              Icon(Icons.wb_sunny_outlined, size: 18, color: Color(0xFF6B6B6B)),
+              SizedBox(width: 6),
+              Text(
+                '환영합니다!',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF6B6B6B),
+                  fontWeight: FontWeight.w600,
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // ===== 오늘의 퀴즈 카드 =====
-              _InfoCard(
-                leading: const _LargeEmoji(emoji: '🎓'),
-                title: '오늘의 퀴즈',
-                subtitle: '한국 사회 전반에 대한 정보를 담은 퀴즈!',
-                // ✅ 여기서 퀴즈 화면으로 이동
-                onTap: () => context.go(R.quiz),
-                showChevron: false,
-                backgroundColor: Colors.white,
-              ),
-
-              const SizedBox(height: 12),
-
-              // ===== 학습 현황 =====
-              _ChartCard(
-                title: '내 학습 현황',
-                child: _WeeklyStudyChart(weeklyData: weeklyData),
-                onTap: () {
-                  // 나중에 학습 현황 상세 페이지 연결 가능
-                },
-                backgroundColor: Colors.white,
               ),
             ],
           ),
-        ),
-      ),
+          const SizedBox(height: 8),
 
-      // ===== 하단 네비게이션 =====
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFEDE8E2),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) {
-            setState(() => _currentIndex = i);
+          // ===== 헤더 =====
+          _HeaderSection(
+            tierCard: _InfoCard(
+              leading: const SizedBox.shrink(),
+              title: '내 티어: 새싹',
+              titleWidget: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Text(
+                    '내 티어: 새싹',
+                    style: TextStyle(
+                      color: Color(0xFF2C2C2C),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(width: 6),
+                  Text('🌱', style: TextStyle(fontSize: 26)),
+                ],
+              ),
+              subtitle: '퀴즈를 풀어 단계를 올려보세요!',
+              onTap: () {},
+              showChevron: false,
+              backgroundColor: Colors.white,
+              contentPadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            ),
+          ),
 
-            // 👉 탭에 따라 실제 라우팅
-            switch (i) {
-              case 0:
-                context.go(R.home);            // 메인
-                break;
-              case 1:
-                context.go(R.information);     // 정보 모음
-                break;
-              case 2:
-                context.go(R.learningStatus);  // 학습 현황
-                break;
-              case 3:
-                context.go(R.settings);        // 설정
-                break;
-            }
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF2C2C2C),
-          unselectedItemColor: const Color(0xFF6D6D6D),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          items: const [
-            BottomNavigationBarItem(
-              icon: _PillIcon(icon: Icons.home_rounded, active: false),
-              activeIcon: _PillIcon(icon: Icons.home_rounded, active: true),
-              label: '메인',
-            ),
-            BottomNavigationBarItem(
-              icon: _PillIcon(icon: Icons.lightbulb_outline, active: false),
-              activeIcon: _PillIcon(icon: Icons.lightbulb_outline, active: true),
-              label: '정보 모음',
-            ),
-            BottomNavigationBarItem(
-              icon: _PillIcon(icon: Icons.bar_chart_rounded, active: false),
-              activeIcon: _PillIcon(icon: Icons.bar_chart_rounded, active: true),
-              label: '학습 현황',
-            ),
-            BottomNavigationBarItem(
-              icon: _PillIcon(icon: Icons.settings_outlined, active: false),
-              activeIcon: _PillIcon(icon: Icons.settings_outlined, active: true),
-              label: '설정',
-            ),
-          ],
-        ),
+          const SizedBox(height: 16),
+
+          // ===== 오늘의 퀴즈 카드 =====
+          _InfoCard(
+            leading: const _LargeEmoji(emoji: '🎓'),
+            title: '오늘의 퀴즈',
+            subtitle: '한국 사회 전반에 대한 정보를 담은 퀴즈!',
+            // 🔸 여기서는 콜백만 호출 (라우팅 X)
+            onTap: onTodayQuizTap,
+            showChevron: false,
+            backgroundColor: Colors.white,
+          ),
+
+          const SizedBox(height: 12),
+
+          // ===== 학습 현황 =====
+          _ChartCard(
+            title: '내 학습 현황',
+            child: _WeeklyStudyChart(weeklyData: weeklyData),
+            onTap: () {
+              // 나중에 학습 현황 상세 페이지 연결 가능
+            },
+            backgroundColor: Colors.white,
+          ),
+        ],
       ),
     );
   }
@@ -389,31 +313,6 @@ class _EmojiBadge extends StatelessWidget {
           fontSize: 30,
         ),
       ),
-    );
-  }
-}
-
-class _PillIcon extends StatelessWidget {
-  final IconData icon;
-  final bool active;
-  const _PillIcon({required this.icon, required this.active});
-
-  @override
-  Widget build(BuildContext context) {
-    const pillColor = Color(0xFF4E7C88);
-    final iconColor = active ? Colors.white : const Color(0xFF6D6D6D);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      padding: EdgeInsets.symmetric(
-        horizontal: active ? 12 : 0,
-        vertical: active ? 6 : 0,
-      ),
-      decoration: BoxDecoration(
-        color: active ? pillColor : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Icon(icon, color: iconColor),
     );
   }
 }

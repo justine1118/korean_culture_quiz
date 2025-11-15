@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
 import 'router.dart';
 
-// screens
-import 'screens/start_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/signup_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/quiz_screen.dart';
-import 'screens/quiz_result_screen.dart';
-import 'screens/achievement_screen.dart';
-import 'screens/learning_status_screen.dart';
-import 'screens/setting_screen.dart';
+
 
 
 void main() {

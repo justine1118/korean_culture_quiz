@@ -5,22 +5,21 @@ import 'package:go_router/go_router.dart';
 import 'screens/start_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
-import 'screens/home_screen.dart';
 import 'screens/quiz_screen.dart';
 import 'screens/quiz_result_screen.dart';
 import 'screens/achievement_screen.dart';
 import 'screens/learning_status_screen.dart';
 import 'screens/setting_screen.dart';
 
-// ⭐ 새로 추가
-import 'screens/information_screen.dart';
+// ⭐ 메인 탭 스크린
+import 'screens/main_screen/main_tab_scaffold.dart';
 
 // 라우트 경로 상수
 class R {
   static const start = '/start';
   static const login = '/login';
   static const signup = '/signup';
-  static const home = '/home';
+  static const main = '/main';
 
   static const quiz = '/quiz';
   static const quizResult = '/quiz/result';
@@ -29,18 +28,14 @@ class R {
   static const learningStatus = '/learning-status';
   static const settings = '/settings';
   static const difficulty = '/difficulty';
-
-  static const characterSelect = '/character/select';
-  static const characterView = '/character/view';
-  static const characterChange = '/character/change';
-
-  // ⭐ 추가된 정보 모음 페이지 경로
+  // 정보 모음(메인 탭 중 하나) 경로
   static const information = '/information';
 }
 
 /// 전역 라우터
 final GoRouter appRouter = GoRouter(
-  initialLocation: R.information, // 기존 유지
+  // 처음 들어갈 위치 (원하면 R.home 으로 바꿔도 됨)
+  initialLocation: R.main,
   routes: [
     GoRoute(
       path: R.start,
@@ -57,17 +52,19 @@ final GoRouter appRouter = GoRouter(
       name: 'signup',
       builder: (_, __) => const SignupScreen(),
     ),
+
+    // ⭐ 메인 탭 스크린 (홈)
     GoRoute(
-      path: R.home,
-      name: 'home',
-      builder: (_, __) => const HomeScreen(),
+      path: R.main,
+      name: 'main',
+      builder: (_, __) => const MainTabScaffold(),
     ),
 
-    // ⭐ 정보 모음 페이지 추가
+    // ⭐ 정보 모음 경로도 같은 스크린으로 라우팅
     GoRoute(
       path: R.information,
       name: 'information',
-      builder: (_, __) => const InformationScreen(),
+      builder: (_, __) => const MainTabScaffold(),
     ),
 
     GoRoute(

@@ -511,7 +511,7 @@ class _CompleteStep extends StatelessWidget {
             height: 60,
             child: ElevatedButton(
               onPressed: () {
-                context.go(R.home);   // ← 메인 페이지로 이동
+                context.go(R.main);   // ← 메인 페이지로 이동
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4E7C88),
