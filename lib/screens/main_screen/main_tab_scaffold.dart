@@ -4,6 +4,7 @@ import '../../router.dart';
 
 import 'main_tab_body.dart';
 import 'info_tab_body.dart';
+import 'settings_tab_body.dart';   // ⬅️ 추가
 
 class MainTabScaffold extends StatefulWidget {
   const MainTabScaffold({super.key});
@@ -40,7 +41,7 @@ class _MainTabScaffoldState extends State<MainTabScaffold> {
             ),
             const InfoTabBody(),
             const _LearningTabBody(),
-            const _SettingsTabBody(),
+            const SettingsTabBody(),   // ⬅️ 교체
           ],
         ),
       ),
@@ -67,18 +68,24 @@ class _MainTabScaffoldState extends State<MainTabScaffold> {
               label: '메인',
             ),
             BottomNavigationBarItem(
-              icon: _PillIcon(icon: Icons.lightbulb_outline, active: false),
-              activeIcon: _PillIcon(icon: Icons.lightbulb_outline, active: true),
+              icon:
+              _PillIcon(icon: Icons.lightbulb_outline, active: false),
+              activeIcon:
+              _PillIcon(icon: Icons.lightbulb_outline, active: true),
               label: '정보 모음',
             ),
             BottomNavigationBarItem(
-              icon: _PillIcon(icon: Icons.bar_chart_rounded, active: false),
-              activeIcon: _PillIcon(icon: Icons.bar_chart_rounded, active: true),
+              icon: _PillIcon(
+                  icon: Icons.bar_chart_rounded, active: false),
+              activeIcon: _PillIcon(
+                  icon: Icons.bar_chart_rounded, active: true),
               label: '학습 현황',
             ),
             BottomNavigationBarItem(
-              icon: _PillIcon(icon: Icons.settings_outlined, active: false),
-              activeIcon: _PillIcon(icon: Icons.settings_outlined, active: true),
+              icon: _PillIcon(
+                  icon: Icons.settings_outlined, active: false),
+              activeIcon: _PillIcon(
+                  icon: Icons.settings_outlined, active: true),
               label: '설정',
             ),
           ],
@@ -123,24 +130,6 @@ class _LearningTabBody extends StatelessWidget {
     return const Center(
       child: Text(
         '학습 현황 탭 내용 (나중에 채워넣기)',
-        style: TextStyle(
-          fontSize: 16,
-          color: Color(0xFF2C2C2C),
-        ),
-      ),
-    );
-  }
-}
-
-/// 설정 탭 – 임시
-class _SettingsTabBody extends StatelessWidget {
-  const _SettingsTabBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '설정 탭 내용 (나중에 채워넣기)',
         style: TextStyle(
           fontSize: 16,
           color: Color(0xFF2C2C2C),
