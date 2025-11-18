@@ -1,5 +1,7 @@
+// lib/screens/main_tab_body.dart
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:korean_culture_quiz/widgets/weekly_study_chart.dart';
+
 
 class MainTabBody extends StatelessWidget {
   final List<double> weeklyData;
@@ -70,7 +72,6 @@ class MainTabBody extends StatelessWidget {
             leading: const _LargeEmoji(emoji: '🎓'),
             title: '오늘의 퀴즈',
             subtitle: '한국 사회 전반에 대한 정보를 담은 퀴즈!',
-            // 🔸 여기서는 콜백만 호출 (라우팅 X)
             onTap: onTodayQuizTap,
             showChevron: false,
             backgroundColor: Colors.white,
@@ -81,7 +82,7 @@ class MainTabBody extends StatelessWidget {
           // ===== 학습 현황 =====
           _ChartCard(
             title: '내 학습 현황',
-            child: _WeeklyStudyChart(weeklyData: weeklyData),
+            child: WeeklyStudyChart(weeklyData: weeklyData),
             onTap: () {
               // 나중에 학습 현황 상세 페이지 연결 가능
             },
@@ -311,55 +312,6 @@ class _EmojiBadge extends StatelessWidget {
         emoji,
         style: const TextStyle(
           fontSize: 30,
-        ),
-      ),
-    );
-  }
-}
-
-class _WeeklyStudyChart extends StatelessWidget {
-  final List<double> weeklyData;
-
-  const _WeeklyStudyChart({required this.weeklyData});
-
-  @override
-  Widget build(BuildContext context) {
-    const days = ['월', '화', '수', '목', '금', '토', '일'];
-
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: 6,
-        minY: 0,
-        titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, _) => Text(
-                days[value.toInt()],
-                style: const TextStyle(fontSize: 11),
-              ),
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        gridData: const FlGridData(show: false),
-        barGroups: List.generate(
-          weeklyData.length,
-              (i) => BarChartGroupData(
-            x: i,
-            barRods: [
-              BarChartRodData(
-                toY: weeklyData[i],
-                width: 18,
-                borderRadius: BorderRadius.circular(4),
-                color: const Color(0xFF4E7C88),
-              ),
-            ],
-          ),
         ),
       ),
     );

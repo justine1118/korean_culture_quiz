@@ -4,7 +4,8 @@ import '../../router.dart';
 
 import 'main_tab_body.dart';
 import 'info_tab_body.dart';
-import 'settings_tab_body.dart';   // ⬅️ 추가
+import 'settings_tab_body.dart';
+import 'learning_status_tab_body.dart'; // ⬅️ 학습 현황 탭 바디 추가 import
 
 class MainTabScaffold extends StatefulWidget {
   const MainTabScaffold({super.key});
@@ -40,8 +41,16 @@ class _MainTabScaffoldState extends State<MainTabScaffold> {
               onTodayQuizTap: () => context.go(R.quiz),
             ),
             const InfoTabBody(),
-            const _LearningTabBody(),
-            const SettingsTabBody(),   // ⬅️ 교체
+
+            // ✅ 3번째: 학습 현황 탭 실제 화면 연결
+            LearningStatusTabBody(
+              weeklyData: weeklyData,
+              tierName: '새싹',       // 나중에 백엔드 값으로 교체 가능
+              totalQuizCount: 30,      // 예시 값
+              completionRatio: 0.3,    // 예: 전체 퀴즈 중 30% 완료
+            ),
+
+            const SettingsTabBody(),
           ],
         ),
       ),
@@ -68,8 +77,7 @@ class _MainTabScaffoldState extends State<MainTabScaffold> {
               label: '메인',
             ),
             BottomNavigationBarItem(
-              icon:
-              _PillIcon(icon: Icons.lightbulb_outline, active: false),
+              icon: _PillIcon(icon: Icons.lightbulb_outline, active: false),
               activeIcon:
               _PillIcon(icon: Icons.lightbulb_outline, active: true),
               label: '정보 모음',
@@ -117,24 +125,6 @@ class _PillIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Icon(icon, color: iconColor),
-    );
-  }
-}
-
-/// 학습 현황 탭 – 임시
-class _LearningTabBody extends StatelessWidget {
-  const _LearningTabBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '학습 현황 탭 내용 (나중에 채워넣기)',
-        style: TextStyle(
-          fontSize: 16,
-          color: Color(0xFF2C2C2C),
-        ),
-      ),
     );
   }
 }

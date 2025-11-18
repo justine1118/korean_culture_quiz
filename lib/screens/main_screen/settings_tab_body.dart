@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../router.dart';  // ← lib/router.dart 경로 (settings 폴더 기준)
 
-import 'settings/difficulty_setting_screen.dart';
-import 'settings/amount_setting_screen.dart';
+// 이 파일에서는 실제 화면 위젯(DifficultySettingScreen, AmountSettingScreen)을
+// 직접 push 하지 않고, 라우팅(R.difficulty / R.amountSetting)만 사용하므로
+// 아래 두 import는 더 이상 필요 없음 (원하면 지워도 됨).
+// import 'settings/difficulty_setting_screen.dart';
+// import 'settings/amount_setting_screen.dart';
 
 class SettingsTabBody extends StatelessWidget {
   const SettingsTabBody({super.key});
@@ -24,8 +29,7 @@ class SettingsTabBody extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 호랑이를 살짝 왼쪽으로 당겨서
-                // PNG 안쪽 여백(13px)을 보정
+                // 호랑이를 살짝 왼쪽으로 당겨서 PNG 안쪽 여백(13px)을 보정
                 Transform.translate(
                   offset: const Offset(-6, 0), // 왼쪽으로 6px 이동
                   child: Image.asset(
@@ -81,11 +85,9 @@ class SettingsTabBody extends StatelessWidget {
               description: '쉬움 / 보통 / 어려움 중에서 선택해요.',
               icon: Icons.school_outlined,
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const DifficultySettingScreen(),
-                  ),
-                );
+                // ✅ 이전: Navigator.of(context).push(MaterialPageRoute(...))
+                // ✅ 지금: go_router 라우팅
+                context.push(R.difficulty);
               },
             ),
             const SizedBox(height: 12),
@@ -94,11 +96,7 @@ class SettingsTabBody extends StatelessWidget {
               description: '하루에 풀 문제 개수를 정해요.',
               icon: Icons.list_alt_outlined,
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const AmountSettingScreen(),
-                  ),
-                );
+                context.push(R.amountSetting);
               },
             ),
           ],
