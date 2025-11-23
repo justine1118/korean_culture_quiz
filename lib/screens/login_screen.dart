@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../router.dart'; // R.home 등 사용하는 파일 경로에 맞게 수정
+
+import '../router.dart';
+import '../DTO/login_request.dart';
+import '../api/auth_api.dart';
+import '../info/user_info.dart';  // 🔥 여기로 변경 (UserSession 사용)
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
 
-  bool _loginFailed = false;
+  bool _loginFailed = false; // 처음은 false로 시작
 
   @override
   void dispose() {
@@ -25,16 +29,29 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _tryLogin() {
-    final id = _idController.text.trim();
+  // ==========================
+  // 🚀 실제 로그인 시도 함수
+  // ==========================
+  Future<void> _tryLogin() async {
+    final email = _idController.text.trim();
     final pw = _pwController.text.trim();
 
-    if (id == '1234' && pw == '1234') {
+    final request = LoginRequest(email: email, password: pw);
+
+    final user = await AuthApi.login(request);
+
+    if (user != null) {
+      // ✅ 로그인 성공: 세션에 사용자 정보 저장
+      UserSession.setUser(user);
+
       setState(() {
         _loginFailed = false;
       });
+
+      // 메인 화면으로 이동
       context.go(R.main);
     } else {
+      // ❌ 로그인 실패: 안내 문구 변경
       setState(() {
         _loginFailed = true;
       });
@@ -50,7 +67,6 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start, // 🔥 화면 위쪽에 붙도록 변경
             children: [
               // 상단 X 버튼
               Align(
@@ -65,10 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // ====== 호랑이 왼쪽 + 텍스트 오른쪽 =======
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 호랑이 이미지
                   Image.asset(
                     'assets/images/tiger_image.png',
                     width: 120,
@@ -76,20 +90,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(width: 16),
 
-                  // 텍스트 영역
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (!_loginFailed) ...[
+                        if (!_loginFailed)
                           const Text(
                             '한국 문화 교육을 위한 앱,\nHanQ입니다.\n환영합니다!',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
-                          ),
-                        ] else ...[
+                          )
+                        else
                           const Text(
                             '아이디 혹은 비밀번호가\n일치하지 않습니다.\n\n다시 입력해 주십시오',
                             style: TextStyle(
@@ -97,8 +110,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-
-                        ]
                       ],
                     ),
                   ),

@@ -560,11 +560,14 @@ class _CloseCircleButton extends StatelessWidget {
         icon: const Icon(Icons.close, size: 20),
         splashRadius: 20,
         color: Colors.black87,
-        onPressed: () => Navigator.of(context).pop(),
+
+        // 🔥 로그인 화면으로 이동하도록 수정
+        onPressed: () => context.go(R.login),
       ),
     );
   }
 }
+
 
 class _ChoiceButton extends StatelessWidget {
   const _ChoiceButton({
