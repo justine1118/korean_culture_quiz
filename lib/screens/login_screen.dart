@@ -42,11 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (user != null) {
       // ✅ 로그인 성공: 세션에 사용자 정보 저장
-      UserSession.setUser(user);
-
-      setState(() {
-        _loginFailed = false;
-      });
+      UserInfo.setUser(user);
 
       // 메인 화면으로 이동
       context.go(R.main);

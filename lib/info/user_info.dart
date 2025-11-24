@@ -2,7 +2,7 @@
 import '../DTO/user_response.dart';
 
 /// 앱 실행 중 현재 로그인한 사용자 정보를 보관하는 세션 클래스
-class UserSession {
+class UserInfo {
   /// 현재 로그인한 유저. 로그인 전/로그아웃 후에는 null.
   static UserResponse? currentUser;
 
