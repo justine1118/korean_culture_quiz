@@ -248,6 +248,23 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // 🔺 오른쪽 위 X 버튼
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    color: Colors.black87,
+                    onPressed: () {
+                      // 로그인 화면으로 이동
+                      context.go(R.login); // 💡 라우터에서 로그인 경로 이름에 맞게 수정
+                    },
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),

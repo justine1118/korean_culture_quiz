@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../router.dart';
 import '../DTO/login_request.dart';
 import '../api/auth_api.dart';
-import '../info/user_info.dart';  // 🔥 여기로 변경 (UserSession 사용)
+import '../info/user_info.dart';  // 🔥 UserSession 저장
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
 
-  bool _loginFailed = false; // 처음은 false로 시작
+  bool _loginFailed = false;
 
   @override
   void dispose() {
@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // ==========================
-  // 🚀 실제 로그인 시도 함수
+  // 🚀 로그인 요청
   // ==========================
   Future<void> _tryLogin() async {
     final email = _idController.text.trim();
@@ -41,13 +41,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final user = await AuthApi.login(request);
 
     if (user != null) {
-      // ✅ 로그인 성공: 세션에 사용자 정보 저장
       UserInfo.setUser(user);
 
-      // 메인 화면으로 이동
       context.go(R.main);
     } else {
-      // ❌ 로그인 실패: 안내 문구 변경
       setState(() {
         _loginFailed = true;
       });
@@ -64,18 +61,13 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 상단 X 버튼
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
+              // =====================
+              // 🚫 X 버튼 제거 완료
+              // =====================
 
               const SizedBox(height: 8),
 
-              // ====== 호랑이 왼쪽 + 텍스트 오른쪽 =======
+              // ===== 호랑이 + 텍스트 =====
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
