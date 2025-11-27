@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../router.dart';
+import '../api/quiz_api.dart';
+import '../DTO/quiz_load.dart';      // QuizLoadItem 정의된 파일
+import '../info/user_info.dart';    // UserSession 등 (userId 얻기용)
 
 /// ===== 모델 =====
 class Choice {
@@ -75,50 +79,77 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  late final QuizController c;
+  late QuizController c;
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    c = QuizController(const [
-      Question(
-        title: '다음은 한국의 문화와 전통에 대한 문제이다.\n다음 중 한국의 대표적인 요리가 아닌 것은?',
-        choices: [
-          Choice('불고기', explanation: '불고기는 한국의 대표적인 구이 요리입니다. 따라서 정답이 아닙니다.'),
-          Choice('비빔밥', explanation: '비빔밥은 한국의 대표적인 혼합밥 요리입니다. 따라서 정답이 아닙니다.'),
-          Choice(
-            '동파육',
-            explanation: '동파육은 중국 요리로, 돼지고기를 간장과 설탕으로 졸여 만든 음식입니다.',
-            isAnswer: true,
-          ),
-          Choice(
-            '삼계탕',
-            explanation: '삼계탕은 닭과 인삼, 대추, 찹쌀 등을 넣고 끓이는 한국 보양식입니다. 정답이 아닙니다.',
-          ),
-        ],
-      ),
-      Question(
-        title: '추석에 즐기는 대표적인 민속놀이는?',
-        choices: [
-          Choice('크리켓', explanation: '크리켓은 한국의 전통 민속놀이가 아닙니다.'),
-          Choice('윷놀이', explanation: '윷놀이는 한국의 전통 보드게임으로 명절에 즐깁니다.', isAnswer: true),
-          Choice('하키', explanation: '하키는 한국 전통 민속놀이가 아닙니다.'),
-          Choice('럭비', explanation: '럭비는 한국의 전통 민속놀이는 아닙니다.'),
-        ],
-      ),
-    ]);
+    _loadQuizFromApi();
+  }
+
+  Future<void> _loadQuizFromApi() async {
+    try {
+      final int userId = UserInfo.currentUser!.userId;
+      final List<QuizLoadItem> items = await QuizApi.loadQuiz(userId);
+
+      // 🔁 QuizLoadItem -> Question/Choice 변환
+      final questions = items.map((item) {
+        final List<String> choices = item.choices;
+        final List<String> explanations = item.explanations;
+
+        final choiceModels = <Choice>[];
+
+        for (int i = 0; i < choices.length; i++) {
+          final text = choices[i];
+          final explain = (i < explanations.length) ? explanations[i] : '';
+
+          final isAnswer = text == item.answer;
+
+          choiceModels.add(
+            Choice(
+              text,
+              explanation: explain,
+              isAnswer: isAnswer,
+            ),
+          );
+        }
+
+        return Question(
+          title: item.question,
+          choices: choiceModels,
+        );
+      }).toList();
+
+      if (!mounted) return;
+      setState(() {
+        c = QuizController(questions);
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   Color _optionBg(int i) {
     if (c.stage == QuizStage.feedback && c.selected != null) {
       if (i == c.selected) {
-        return c.isCorrectNow ? const Color(0xFF6D9E8D) : const Color(0xFFCC8275);
+        return c.isCorrectNow
+            ? const Color(0xFF6D9E8D)
+            : const Color(0xFFCC8275);
       }
     }
     return const Color(0xFFF4F3F6);
   }
 
-  void _onTapChoice(int i) => setState(() => c.select(i));
+  void _onTapChoice(int i) {
+    setState(() => c.select(i));
+  }
 
   void _onTapNext() {
     if (c.stage != QuizStage.feedback) return;
@@ -139,8 +170,29 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFEDE8E3),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFEDE8E3),
+        body: Center(
+          child: Text(
+            '퀴즈를 불러오는 중 오류가 발생했습니다.\n$_errorMessage',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    // 여기부터는 c가 준비된 상태
     final double filledWidth = 300 * c.progress;
-    final bool nextEnabled = c.stage == QuizStage.feedback && c.hasSelection;
+    final bool nextEnabled =
+        c.stage == QuizStage.feedback && c.hasSelection;
 
     return Scaffold(
       backgroundColor: const Color(0xFFEDE8E3),
@@ -226,7 +278,8 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
 
                 // 피드백 패널
-                if (c.stage == QuizStage.feedback && c.selectedChoice != null)
+                if (c.stage == QuizStage.feedback &&
+                    c.selectedChoice != null)
                   Positioned(
                     left: 22,
                     top: 243,
@@ -234,7 +287,9 @@ class _QuizScreenState extends State<QuizScreen> {
                       width: 333,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: c.isCorrectNow ? const Color(0xFF6D9E8D) : const Color(0xFFCC8275),
+                        color: c.isCorrectNow
+                            ? const Color(0xFF6D9E8D)
+                            : const Color(0xFFCC8275),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -291,12 +346,16 @@ class _QuizScreenState extends State<QuizScreen> {
                       width: 335,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: nextEnabled ? const Color(0xFF4E7C88) : const Color(0xFFB0BEC5),
+                        color: nextEnabled
+                            ? const Color(0xFF4E7C88)
+                            : const Color(0xFFB0BEC5),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        (c.isLast && c.stage == QuizStage.feedback) ? '결과 보기' : '계속',
+                        (c.isLast && c.stage == QuizStage.feedback)
+                            ? '결과 보기'
+                            : '계속',
                         style: const TextStyle(
                           color: Color(0xFFF4F3F6),
                           fontSize: 16,
@@ -357,7 +416,8 @@ class _OptionTile extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: isSelected
-                    ? const Icon(Icons.check, size: 20, color: Color(0xFF4E7C88))
+                    ? const Icon(Icons.check,
+                    size: 20, color: Color(0xFF4E7C88))
                     : Text(
                   letter,
                   style: const TextStyle(
@@ -372,13 +432,18 @@ class _OptionTile extends StatelessWidget {
             Positioned(
               left: 70,
               top: 20,
-              child: Text(
-                text,
-                style: const TextStyle(
-                  color: Color(0xFF2C2C2C),
-                  fontSize: 16,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w600,
+              child: SizedBox(
+                width: 250,
+                child: Text(
+                  text,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF2C2C2C),
+                    fontSize: 16,
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

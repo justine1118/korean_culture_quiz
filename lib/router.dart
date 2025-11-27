@@ -34,7 +34,7 @@ class R {
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: R.login,
+  initialLocation: R.signup,
   routes: [
     GoRoute(
       path: R.login,

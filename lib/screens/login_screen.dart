@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../router.dart'; // R.home 등 사용하는 파일 경로에 맞게 수정
+
+import '../router.dart';
+import '../DTO/login_request.dart';
+import '../api/auth_api.dart';
+import '../info/user_info.dart';  // 🔥 UserSession 저장
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,14 +29,20 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _tryLogin() {
-    final id = _idController.text.trim();
+  // ==========================
+  // 🚀 로그인 요청
+  // ==========================
+  Future<void> _tryLogin() async {
+    final email = _idController.text.trim();
     final pw = _pwController.text.trim();
 
-    if (id == '1234' && pw == '1234') {
-      setState(() {
-        _loginFailed = false;
-      });
+    final request = LoginRequest(email: email, password: pw);
+
+    final user = await AuthApi.login(request);
+
+    if (user != null) {
+      UserInfo.setUser(user);
+
       context.go(R.main);
     } else {
       setState(() {
@@ -50,25 +60,17 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start, // 🔥 화면 위쪽에 붙도록 변경
             children: [
-              // 상단 X 버튼
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
+              // =====================
+              // 🚫 X 버튼 제거 완료
+              // =====================
 
               const SizedBox(height: 8),
 
-              // ====== 호랑이 왼쪽 + 텍스트 오른쪽 =======
+              // ===== 호랑이 + 텍스트 =====
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 호랑이 이미지
                   Image.asset(
                     'assets/images/tiger_image.png',
                     width: 120,
@@ -76,20 +78,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(width: 16),
 
-                  // 텍스트 영역
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (!_loginFailed) ...[
+                        if (!_loginFailed)
                           const Text(
                             '한국 문화 교육을 위한 앱,\nHanQ입니다.\n환영합니다!',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
-                          ),
-                        ] else ...[
+                          )
+                        else
                           const Text(
                             '아이디 혹은 비밀번호가\n일치하지 않습니다.\n\n다시 입력해 주십시오',
                             style: TextStyle(
@@ -97,8 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-
-                        ]
                       ],
                     ),
                   ),
